@@ -9,6 +9,7 @@ public class UserInterface {
     private JTextField bacteriaCountField;
     private JTextField simulationTimeField;
     private Distribution distribution;
+    private int simTime;
 
     public UserInterface() {
         distribution = new Distribution(400, 400); // Initialize distribution map
@@ -40,8 +41,19 @@ public class UserInterface {
         runTumbleButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                simulation.runAndTumble();
-                drawingPanel.repaint();
+                simTime=0;
+                new Thread(() -> {
+                    while (simTime< Integer.parseInt(simulationTimeField.getText())) {
+                        simulation.runAndTumble();
+                        drawingPanel.repaint();
+                        try {
+                            Thread.sleep(250);  // Adjust the sleep time for smoother or faster movement
+                        } catch (InterruptedException ex) {
+                            ex.printStackTrace();
+                        }
+                        simTime++;
+                    }
+                }).start();
             }
         });
 
@@ -69,10 +81,19 @@ public class UserInterface {
             }
         });
 
+        JButton stopButton = new JButton("Stop");
+        stopButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                simTime= Integer.parseInt(simulationTimeField.getText());
+            }
+        });
+
         controlPanel.add(runTumbleButton);
         controlPanel.add(reproduceButton);
         controlPanel.add(pslTrailButton);
         controlPanel.add(secreteEPSButton);
+        controlPanel.add(stopButton);
 
         JButton startSimulationButton = new JButton("Start Simulation");
         startSimulationButton.addActionListener(new ActionListener() {
