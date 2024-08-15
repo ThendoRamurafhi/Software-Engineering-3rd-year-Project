@@ -1,61 +1,68 @@
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class BiofilmSimulation {
+    private List<Bacteria> bacteriaList;
+    private EPS epsMatrix;
+    private Psl pslTrail;
     private int simulationTime;
     private int bacteriaCount;
-    private static List<Bacteria> bacteriaList;
-    public static EPS epsMatrix;
-    public static Psl pslTrail;
 
-    private ExecutorService executor;
-
-    public BiofilmSimulation(int simulationTime, int bacteriaCount, EPS epsMatrix, Psl pslTrail) {
-        this.simulationTime = simulationTime;
-        this.bacteriaCount = bacteriaCount;
-        this.epsMatrix = epsMatrix;
-        this.pslTrail = pslTrail;
+    public BiofilmSimulation(int bacteriaCount, Distribution distribution) {
         this.bacteriaList = new ArrayList<>();
-        this.executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-    }
+        this.epsMatrix = new EPS(distribution);
+        this.pslTrail = new Psl();
+        this.bacteriaCount = bacteriaCount;
 
-    public void startSimulation() {
-        for (int i = 0; i < simulationTime; i++) {
-            for (Bacteria bacteria : bacteriaList) {
-                executor.execute(bacteria);
-            }
+        for (int i = 0; i < bacteriaCount; i++) {
+            Position position = new Position((float) Math.random() * 400, (float) Math.random() * 400);
+            Direction direction = new Direction((float) Math.random() * 360);
+            Bacteria bacteria = new Bacteria(position, direction, 0.01f, 5.0f);
+            bacteriaList.add(bacteria);
         }
     }
 
-    public void pauseSimulation() {
-        executor.shutdownNow();
+    public void runAndTumble() {
+        for (Bacteria bacteria : bacteriaList) {
+            bacteria.runAndTumble();
+        }
     }
 
-    public void resetSimulation() {
-        executor.shutdownNow();
-        bacteriaList.clear();
-        executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+    public void reproduce() {
+        List<Bacteria> newBacteria = new ArrayList<>();
+        for (Bacteria bacteria : bacteriaList) {
+            newBacteria.add(bacteria.reproduce());
+        }
+        bacteriaList.addAll(newBacteria);
     }
 
-    public void updateParameters(SimulationParameters params) {
-        // Update simulation parameters
+    public void leavePslTrail() {
+        for (Bacteria bacteria : bacteriaList) {
+            bacteria.leavePslTrail(pslTrail);
+        }
     }
 
-    public void recordData(DataRecorder recorder) {
-        // Record simulation data
+    public void secreteEPS() {
+        for (Bacteria bacteria : bacteriaList) {
+            bacteria.secreteEPS(epsMatrix);
+        }
     }
 
     public List<Bacteria> getBacteriaList() {
         return bacteriaList;
     }
 
+    public EPS getEpsMatrix() {
+        return epsMatrix;
+    }
+
     public Psl getPslTrail() {
         return pslTrail;
     }
 
-    public static void addBacteria(Bacteria bacteria) {
-        bacteriaList.add(bacteria);
+    public void updateSimulation() {
+        for (Bacteria bacteria : bacteriaList) {
+            bacteria.update();
+        }
     }
 }

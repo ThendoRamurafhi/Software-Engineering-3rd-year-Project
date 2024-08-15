@@ -9,6 +9,10 @@ public abstract class BiofilmComponent {
 
     public abstract void update();
 
+    public float getQuantity() {
+        return quantity;
+    }
+
     public Position getPosition() {
         return position;
     }

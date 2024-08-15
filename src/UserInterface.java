@@ -3,87 +3,99 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class UserInterface extends JFrame {
-    private Settings settings;
+public class UserInterface {
     private BiofilmSimulation simulation;
-    private JButton startButton, pauseButton, resetButton;
+    private DrawingPanel drawingPanel;
+    private JTextField bacteriaCountField;
+    private JTextField simulationTimeField;
+    private Distribution distribution;
 
-    public UserInterface(BiofilmSimulation simulation) {
-        this.settings = new Settings();
-        this.simulation = simulation;
-        initUI();
+    public UserInterface() {
+        distribution = new Distribution(400, 400); // Initialize distribution map
+        createUI();
     }
 
-    private void initUI() {
-        setTitle("Biofilm Simulation");
-        setSize(800, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
+    private void createUI() {
+        JFrame frame = new JFrame("Bacteria Simulation");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(600, 600);
+        frame.setLayout(new BorderLayout());
 
-        startButton = new JButton("Start");
-        pauseButton = new JButton("Pause");
-        resetButton = new JButton("Reset");
+        JPanel controlPanel = new JPanel();
+        controlPanel.setLayout(new GridLayout(5, 2));
 
-        startButton.addActionListener(new ActionListener() {
+        bacteriaCountField = new JTextField("10");
+        simulationTimeField = new JTextField("100");
+
+        controlPanel.add(new JLabel("Bacteria Count:"));
+        controlPanel.add(bacteriaCountField);
+        controlPanel.add(new JLabel("Simulation Time:"));
+        controlPanel.add(simulationTimeField);
+
+        JButton runTumbleButton = new JButton("Run & Tumble");
+        JButton reproduceButton = new JButton("Reproduce");
+        JButton pslTrailButton = new JButton("Leave Psl Trail");
+        JButton secreteEPSButton = new JButton("Secrete EPS");
+
+        runTumbleButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                simulation.startSimulation();
-                repaint();
+                simulation.runAndTumble();
+                drawingPanel.repaint();
             }
         });
 
-        pauseButton.addActionListener(new ActionListener() {
+        reproduceButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                simulation.pauseSimulation();
+                simulation.reproduce();
+                drawingPanel.repaint();
             }
         });
 
-        resetButton.addActionListener(new ActionListener() {
+        pslTrailButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                simulation.resetSimulation();
-                repaint();
+                simulation.leavePslTrail();
+                drawingPanel.repaint();
             }
         });
 
-        JPanel panel = new JPanel();
-        panel.add(startButton);
-        panel.add(pauseButton);
-        panel.add(resetButton);
+        secreteEPSButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                simulation.secreteEPS();
+                drawingPanel.repaint();
+            }
+        });
 
-        add(panel, BorderLayout.SOUTH);
-    }
+        controlPanel.add(runTumbleButton);
+        controlPanel.add(reproduceButton);
+        controlPanel.add(pslTrailButton);
+        controlPanel.add(secreteEPSButton);
 
-    @Override
-    public void paint(Graphics g) {
-        super.paint(g);
+        JButton startSimulationButton = new JButton("Start Simulation");
+        startSimulationButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int bacteriaCount = Integer.parseInt(bacteriaCountField.getText());
+                int simulationTime = Integer.parseInt(simulationTimeField.getText());
+                simulation = new BiofilmSimulation(bacteriaCount, distribution);
+                drawingPanel.setSimulation(simulation);
+                drawingPanel.repaint();
+            }
+        });
 
-        g.setColor(Color.RED);
-        for (Bacteria bacteria : simulation.getBacteriaList()) {
-            Position pos = bacteria.getPosition();
-            g.fillOval((int) pos.getX(), (int) pos.getY(), 5, 5);
-        }
+        controlPanel.add(startSimulationButton);
+        frame.add(controlPanel, BorderLayout.NORTH);
 
-        g.setColor(Color.BLUE);
-        for (Position pos : simulation.getPslTrail().getTrail()) {
-            g.fillOval((int) pos.getX(), (int) pos.getY(), 2, 2);
-        }
+        drawingPanel = new DrawingPanel(simulation);
+        frame.add(drawingPanel, BorderLayout.CENTER);
+
+        frame.setVisible(true);
     }
 
     public static void main(String[] args) {
-        Position initialPosition = new Position(400, 300);
-        Direction initialDirection = new Direction(0);
-        EPS epsMatrix = new EPS(initialPosition, new Distribution());
-        Psl pslTrail = new Psl(initialPosition);
-        BiofilmSimulation simulation = new BiofilmSimulation(1000, 10, epsMatrix, pslTrail);
-
-        for (int i = 0; i < 10; i++) {
-            Bacteria bacteria = new Bacteria(initialPosition, initialDirection, 0.2f, 1.0f);
-            simulation.addBacteria(bacteria);
-        }
-
-        UserInterface ui = new UserInterface(simulation);
-        ui.setVisible(true);
+        SwingUtilities.invokeLater(() -> new UserInterface());
     }
 }

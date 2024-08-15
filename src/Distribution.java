@@ -1,31 +1,30 @@
-import java.util.ArrayList;
-import java.util.List;
-
 public class Distribution {
-    private List<List<Float>> map;
-    public Distribution() {
-        map = new ArrayList<>();
-        // Initialize map with default values
-    }
+    private float[][] grid;
 
     public Distribution(int width, int height) {
-        map = new ArrayList<>();
-        for (int i = 0; i < width; i++) {
-            List<Float> row = new ArrayList<>();
-            for (int j = 0; j < height; j++) {
-                row.add(0.0f);
-            }
-            map.add(row);
-        }
+        grid = new float[width][height];
     }
 
     public void updateDistribution(Position position, float quantity) {
         int x = (int) position.getX();
         int y = (int) position.getY();
-        map.get(x).set(y, map.get(x).get(y) + quantity);
+        if (x >= 0 && x < grid.length && y >= 0 && y < grid[0].length) {
+            grid[x][y] += quantity;
+        }
     }
 
-    public List<List<Float>> getMap() {
-        return map;
+    public float getValue(int x, int y) {
+        if (x >= 0 && x < grid.length && y >= 0 && y < grid[0].length) {
+            return grid[x][y];
+        }
+        return 0;
+    }
+
+    public int getWidth() {
+        return grid.length;
+    }
+
+    public int getHeight() {
+        return grid[0].length;
     }
 }

@@ -1,53 +1,39 @@
-import java.util.concurrent.ThreadLocalRandom;
-
-public class Bacteria extends BiofilmComponent implements Runnable {
+public class Bacteria extends BiofilmComponent {
     private Direction direction;
     private float reproductionRate;
     private float motility;
 
     public Bacteria(Position position, Direction direction, float reproductionRate, float motility) {
-        super(1.0f, position);
+        super(1.0f, position);  // Default quantity is 1 for bacteria
         this.direction = direction;
         this.reproductionRate = reproductionRate;
         this.motility = motility;
     }
 
-    public void move() {
-        double angleChange = ThreadLocalRandom.current().nextGaussian() * 30;
-        direction.setAngle((float) (direction.getAngle() + angleChange));
-
+    public void runAndTumble() {
         position.setX((float)(position.getX() + motility * Math.cos(Math.toRadians(direction.getAngle()))));
         position.setY((float)(position.getY() + motility * Math.sin(Math.toRadians(direction.getAngle()))));
+        direction.setAngle((float) (Math.random() * 360));  // Random tumble
     }
 
     public Bacteria reproduce() {
-        if (ThreadLocalRandom.current().nextFloat() < reproductionRate) {
-            return new Bacteria(new Position(position.getX(), position.getY()), direction, reproductionRate, motility);
-        }
-        return null;
+        return new Bacteria(new Position(position.getX(), position.getY()), new Direction(direction.getAngle()), reproductionRate, motility);
     }
 
-    public void secreteEPS(EPS epsMatrix) {
-        epsMatrix.addEPS(position, 1.0f);
+    public void secreteEPS(EPS eps) {
+        eps.addEPS(position, 0.1f);  // Example of secretion
     }
 
-    public void leavePslTrail(Psl pslTrail) {
-        pslTrail.addTrail(position);
-    }
-
-    @Override
-    public void run() {
-        move();
-        //secreteEPS(BiofilmSimulation.epsMatrix);
-        //leavePslTrail(BiofilmSimulation.pslTrail);
-       // Bacteria offspring = reproduce();
-        //if (offspring != null) {
-         //   BiofilmSimulation.addBacteria(offspring);
-       // }
+    public void leavePslTrail(Psl psl) {
+        psl.addTrail(position);
     }
 
     @Override
     public void update() {
-        run();
+        runAndTumble();
+    }
+
+    public Direction getDirection() {
+        return direction;
     }
 }
